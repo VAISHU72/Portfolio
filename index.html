@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gunana Sailaja | Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.12.16/dist/framer-motion.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap');
+        
+        body {
+            background-color: #030712;
+            color: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 10px rgba(96, 165, 250, 0.8), 0 0 20px rgba(96, 165, 250, 0.5);
+        }
+
+        .neon-border:hover {
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.4);
+            border-color: rgba(96, 165, 250, 0.8);
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        .custom-cursor {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #60a5fa;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s ease;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #030712; }
+        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { motion } = window.Motion;
+
+        // --- 3D Background Logic ---
+        const ThreeBackground = () => {
+            useEffect(() => {
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+                const particlesGeometry = new THREE.BufferGeometry();
+                const count = 1500;
+                const positions = new Float32Array(count * 3);
+                for(let i = 0; i < count * 3; i++) {
+                    positions[i] = (Math.random() - 0.5) * 10;
+                }
+                particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                const material = new THREE.PointsMaterial({ size: 0.015, color: 0x60a5fa, transparent: true, opacity: 0.6 });
+                const particles = new THREE.Points(particlesGeometry, material);
+                scene.add(particles);
+
+                camera.position.z = 3;
+
+                const animate = () => {
+                    requestAnimationFrame(animate);
+                    particles.rotation.y += 0.001;
+                    particles.rotation.x += 0.0005;
+                    renderer.render(scene, camera);
+                };
+                animate();
+
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+            }, []);
+            return null;
+        };
+
+        const SectionTitle = ({ children }) => (
+            <motion.h2 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                className="text-4xl font-extrabold mb-12 text-center bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent"
+            >
+                {children}
+            </motion.h2>
+        );
+
+        const App = () => {
+            const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+            useEffect(() => {
+                const handleMouseMove = (e) => setMousePos({ x: e.clientX, y: e.clientY });
+                window.addEventListener('mousemove', handleMouseMove);
+                return () => window.removeEventListener('mousemove', handleMouseMove);
+            }, []);
+
+            return (
+                <div className="relative">
+                    <ThreeBackground />
+                    <div className="custom-cursor" style={{ left: mousePos.x - 10, top: mousePos.y - 10 }}></div>
+
+                    <nav className="fixed top-0 w-full z-50 glass px-8 py-4 flex justify-between items-center">
+                        <div className="text-xl font-bold tracking-tighter text-blue-400">GS.DEV</div>
+                        <div className="hidden md:flex gap-8 text-sm uppercase tracking-widest font-medium">
+                            <a href="#about" className="hover:text-blue-400 transition">About</a>
+                            <a href="#projects" className="hover:text-blue-400 transition">Projects</a>
+                            <a href="#experience" className="hover:text-blue-400 transition">Experience</a>
+                            <a href="#contact" className="hover:text-blue-400 transition">Contact</a>
+                        </div>
+                    </nav>
+
+                    <section className="h-screen flex flex-col justify-center items-center text-center px-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.8 }}
+                        >
+                            <h1 className="text-6xl md:text-8xl font-black mb-4 neon-text">Gunana Sailaja</h1>
+                            <p className="text-xl md:text-2xl text-gray-400 max-w-2xl font-light">
+                                Building <span className="text-emerald-400 font-mono">Smart Solutions</span> with Code & Creativity
+                            </p>
+                            <div className="mt-10 flex gap-4">
+                                <a href="#projects" className="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-full font-bold transition-all transform hover:scale-105 shadow-lg shadow-blue-500/20">
+                                    View Projects
+                                </a>
+                                <a href="#contact" className="px-8 py-3 glass hover:bg-white/10 rounded-full font-bold transition-all">
+                                    Contact Me
+                                </a>
+                            </div>
+                        </motion.div>
+                    </section>
+
+                    <section id="about" className="py-20 px-8 max-w-6xl mx-auto">
+                        <SectionTitle>The Persona</SectionTitle>
+                        <div className="grid md:grid-cols-2 gap-10 items-center">
+                            <motion.div whileHover={{ scale: 1.02 }} className="glass p-8">
+                                <p className="text-lg leading-relaxed text-gray-300">
+                                    A passionate Computer Science student with a CGPA of <span className="text-blue-400 font-bold">9.55</span>. I specialize in bridging the gap between robust backend logic and intuitive frontend design.
+                                </p>
+                                <div className="mt-6 flex flex-wrap gap-3">
+                                    {['Leadership', 'Teamwork', 'Communication', 'Problem-Solving'].map(skill => (
+                                        <span key={skill} className="px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded text-xs text-blue-300">{skill}</span>
+                                    ))}
+                                </div>
+                            </motion.div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="glass p-6 text-center">
+                                    <h3 className="text-3xl font-bold text-blue-400">20+</h3>
+                                    <p className="text-sm text-gray-500">Projects Built</p>
+                                </div>
+                                <div className="glass p-6 text-center">
+                                    <h3 className="text-3xl font-bold text-emerald-400">3</h3>
+                                    <p className="text-sm text-gray-500">Hackathons Won</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="projects" className="py-20 px-8 bg-black/30">
+                        <SectionTitle>Featured Creations</SectionTitle>
+                        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                            {[
+                                {
+                                    title: "AI Recommendation Engine",
+                                    desc: "Semantic similarity-based engine for automating internship shortlisting using NLP and keyword extraction.",
+                                    tech: ["Python", "NLP", "Scikit-learn"],
+                                    icon: "fa-robot"
+                                },
+                                {
+                                    title: "Fake Product Detector",
+                                    desc: "Intelligent Chrome extension using rule-based scoring and AI to verify real-time product authenticity.",
+                                    tech: ["JavaScript", "Python", "ML"],
+                                    icon: "fa-shield-halved"
+                                },
+                                {
+                                    title: "Quantum Simulator",
+                                    desc: "Simulation of the BB84 protocol for Quantum Key Distribution using IBM's Qiskit framework.",
+                                    tech: ["Qiskit", "Python", "Quantum"],
+                                    icon: "fa-atom"
+                                }
+                            ].map((p, i) => (
+                                <motion.div 
+                                    key={i}
+                                    whileHover={{ y: -10 }}
+                                    className="glass p-8 neon-border transition-all flex flex-col h-full"
+                                >
+                                    <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-6">
+                                        <i className={`fas ${p.icon} text-blue-400 text-xl`}></i>
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-4">{p.title}</h3>
+                                    <p className="text-gray-400 text-sm mb-8 leading-relaxed flex-grow">{p.desc}</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {p.tech.map(t => <span key={t} className="text-[10px] font-mono text-emerald-400 px-2 py-1 bg-emerald-500/5 border border-emerald-500/20 rounded">#{t}</span>)}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className="py-20 px-8 max-w-6xl mx-auto grid md:grid-cols-2 gap-16">
+                        <div>
+                            <h3 className="text-2xl font-bold mb-8 flex items-center gap-3">
+                                <i className="fas fa-briefcase text-blue-400"></i> Experience
+                            </h3>
+                            <div className="border-l-2 border-blue-500/30 pl-8 relative">
+                                <div className="absolute w-4 h-4 bg-blue-500 rounded-full -left-[9px] top-0 shadow-[0_0_10px_#3b82f6]"></div>
+                                <h4 className="text-lg font-bold">Project Intern</h4>
+                                <p className="text-blue-400 text-sm">Between Breaks | 2025</p>
+                                <p className="mt-2 text-gray-400 text-sm italic">Developed user-focused modules and improved application responsiveness.</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-bold mb-8 flex items-center gap-3">
+                                <i className="fas fa-trophy text-emerald-400"></i> Achievements
+                            </h3>
+                            <ul className="space-y-4">
+                                {[
+                                    "Winner: Amaravati Quantum Valley Hackathon",
+                                    "Winner: Gen E Summit Pitchathon (ANITS)",
+                                    "Champion: Andhra University Ideathon",
+                                    "Cert: Full Stack (GFG) & AWS Cloud"
+                                ].map((a, i) => (
+                                    <li key={i} className="flex gap-3 text-sm text-gray-300">
+                                        <i className="fas fa-check-circle text-emerald-500 mt-1"></i> {a}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </section>
+
+                    <section id="contact" className="py-20 px-8 bg-gradient-to-t from-blue-900/20 to-transparent">
+                        <div className="max-w-4xl mx-auto glass p-10 border-blue-500/20">
+                            <SectionTitle>Let's Connect</SectionTitle>
+                            <div className="grid md:grid-cols-2 gap-10">
+                                <div>
+                                    <p className="text-gray-400 mb-8">Open for collaborations in Full Stack Development and AI/ML projects.</p>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-4">
+                                            <i className="fas fa-envelope text-blue-400"></i>
+                                            <span>sailajagunana@gmail.com</span>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <i className="fas fa-phone text-blue-400"></i>
+                                            <span>+91 8688682449</span>
+                                        </div>
+                                        <div className="flex gap-6 mt-8 text-2xl">
+                                            <a href="#" className="hover:text-blue-400 transition"><i className="fab fa-linkedin"></i></a>
+                                            <a href="#" className="hover:text-blue-400 transition"><i className="fab fa-github"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                                    <input type="text" placeholder="Name" className="w-full bg-white/5 border border-white/10 p-3 rounded focus:outline-none focus:border-blue-500 transition" />
+                                    <input type="email" placeholder="Email" className="w-full bg-white/5 border border-white/10 p-3 rounded focus:outline-none focus:border-blue-500 transition" />
+                                    <textarea placeholder="Message" rows="4" className="w-full bg-white/5 border border-white/10 p-3 rounded focus:outline-none focus:border-blue-500 transition"></textarea>
+                                    <button className="w-full py-3 bg-blue-600 rounded font-bold hover:bg-blue-500 transition">Send Message</button>
+                                </form>
+                            </div>
+                        </div>
+                    </section>
+
+                    <footer className="py-8 text-center text-gray-600 text-xs border-t border-white/5">
+                        &copy; 2026 Gunana Sailaja. All Rights Reserved. Built with React & Three.js
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
